@@ -1,0 +1,72 @@
+# Moonie Signal beside signal-cli-rest-api. Values come from .env (see .env.example), the push token from a file.
+# `docker compose up -d --build` builds the app's image from this checkout.
+#
+# signal-cli-rest-api's API has no authentication: whatever reaches it owns the Signal account. So the `backend`
+# network holds the app and signal-cli only; n8n joins the internal `hook` network, where it reaches the app's push
+# route (http://moonie-signal:8080/signal/send) and nothing of the backend. No port is published.
+name: moonie-signal
+
+services:
+  moonie:
+    image: ${MOONIE_SIGNAL_IMAGE:-moonie-signal:local}
+    build: .
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    pids_limit: 128
+    restart: unless-stopped
+    depends_on: [signal]
+    environment:
+      MOONIE_SIGNAL_ACCOUNT: ${MOONIE_SIGNAL_ACCOUNT:?set the Signal account number in .env}
+      MOONIE_SIGNAL_API_URL: http://signal:8080
+      MOONIE_SIGNAL_WEBHOOK_URL: ${MOONIE_SIGNAL_WEBHOOK_URL:?set the n8n webhook URL in .env}
+      MOONIE_SIGNAL_WHITELIST_DIRECT: ${MOONIE_SIGNAL_WHITELIST_DIRECT:-}
+      MOONIE_SIGNAL_ALLOWED_GROUPS: ${MOONIE_SIGNAL_ALLOWED_GROUPS:-}
+      MOONIE_SIGNAL_WHITELIST_GROUPS: ${MOONIE_SIGNAL_WHITELIST_GROUPS:-}
+      MOONIE_SIGNAL_PUSH_TOKEN_FILE: /run/secrets/push_token
+      # Optional: the path inside the container of a file holding the webhook's bearer token (see the README)
+      MOONIE_SIGNAL_WEBHOOK_TOKEN_FILE: ${MOONIE_SIGNAL_WEBHOOK_TOKEN_FILE:-}
+      MOONIE_SIGNAL_WEBHOOK_SECONDS: ${MOONIE_SIGNAL_WEBHOOK_SECONDS:-}
+      MOONIE_SIGNAL_TEXT_MODE: ${MOONIE_SIGNAL_TEXT_MODE:-}
+      MOONIE_SIGNAL_MAX_ATTACHMENT_BYTES: ${MOONIE_SIGNAL_MAX_ATTACHMENT_BYTES:-}
+      MOONIE_HTTP_MAX_BODY_BYTES: ${MOONIE_HTTP_MAX_BODY_BYTES:-}
+    secrets: [push_token]
+    networks:
+      backend: {}
+      hook:
+        aliases: [moonie-signal]
+
+  signal:
+    # Pinned by tag and digest: the styled-text syntax and the receive behaviour are those of this version
+    image: bbernhard/signal-cli-rest-api:0.101@sha256:2cf09d66a86fdd210e42ee91662216364acc27da1163a8c44167a77ea3a6559a
+    restart: unless-stopped
+    # Its start (s6-overlay) needs these five capabilities; no-new-privileges would stop it
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    mem_limit: 1g
+    pids_limit: 256
+    environment:
+      MODE: json-rpc
+      # Messages wait on Signal's servers while the app restarts, instead of being drained and lost
+      JSON_RPC_RECEIVE_MODE: manual
+      TZ: ${TZ:-UTC}
+    # The account's data and keys, owned 1000:1000; never versioned
+    volumes:
+      - ./signal-cli:/home/.local/share/signal-cli
+    networks: [backend]
+
+networks:
+  # The app and signal-cli only. Not internal: signal-cli reaches Signal's servers through it
+  backend:
+    name: moonie-signal-backend
+  # The app and n8n: internal, created outside this stack so n8n's stack does not depend on this one:
+  #   docker network create --internal moonie-signal-hook
+  hook:
+    external: true
+    name: moonie-signal-hook
+
+secrets:
+  # A random token of 32 characters or more, readable by uid 10001 (the app's user)
+  push_token:
+    file: ./secrets/push_token
