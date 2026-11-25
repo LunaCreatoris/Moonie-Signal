@@ -124,6 +124,8 @@ Le webhook a 120 secondes pour répondre. Pour protéger le webhook par un jeton
 `MOONIE_SIGNAL_WEBHOOK_TOKEN_FILE` et l'exemple de `compose.override.yml` dans les
 [réglages du README](https://github.com/LunaCreatoris/Moonie-Signal/blob/main/README.md#settings).
 
+Une installation testée avec n8n, nœud par nœud, est décrite dans [Cas testés](tested-setups.md#n8n).
+
 ## Lancer {#start}
 
 Arrêtez d'abord tout autre relais du même compte, puis construisez l'image du relais depuis votre copie du dépôt

@@ -49,6 +49,8 @@ curl -X POST http://moonie-signal:8080/signal/send \
 `to` prend jusqu'à 16 destinataires : identifiants, numéros ou groupes. Chacun doit être autorisé (voir
 [Listes blanches et groupes](whitelists-and-groups.md)), et un groupe passe aussi le contrôle de ses membres.
 
+Le même envoi depuis un nœud HTTP Request de n8n est décrit dans [Cas testés](tested-setups.md#n8n-http-request).
+
 ## La réponse de la route {#push-answer}
 
 - `200` avec `{"ok": true, "results": [...]}` : tout est parti.

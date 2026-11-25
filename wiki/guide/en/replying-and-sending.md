@@ -49,6 +49,8 @@ curl -X POST http://moonie-signal:8080/signal/send \
 `to` takes up to 16 recipients: ids, numbers or groups. Each one must be allowed (see
 [Whitelists and groups](whitelists-and-groups.md)), and a group also goes through the member check.
 
+The same push from an n8n HTTP Request node is described in [Tested setups](tested-setups.md#n8n-http-request).
+
 ## The route's answer {#push-answer}
 
 - `200` with `{"ok": true, "results": [...]}`: everything went out.

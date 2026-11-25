@@ -36,6 +36,7 @@ jeton.
 - [Listes blanches et groupes](whitelists-and-groups.md) : autoriser des personnes et des groupes.
 - [Répondre et envoyer](replying-and-sending.md) : la réponse du webhook et la route d'envoi.
 - [Dépannage](troubleshooting.md) : lire les journaux et régler les problèmes courants.
+- [Cas testés](tested-setups.md) : les installations essayées pour de vrai, n8n compris, étape par étape.
 
 ## La référence technique {#reference}
 

@@ -34,6 +34,7 @@ The logs only give counts and codes: never a number, an id, a name, a text or a 
 - [Whitelists and groups](whitelists-and-groups.md): allow people and groups.
 - [Replying and sending](replying-and-sending.md): the webhook's answer and the send route.
 - [Troubleshooting](troubleshooting.md): read the logs and fix the common problems.
+- [Tested setups](tested-setups.md): the setups actually tried, n8n included, step by step.
 
 ## The technical reference {#reference}
 
