@@ -1,13 +1,13 @@
 ---
-title: Replying and sending from n8n
+title: Replying and sending
 description: Reply in the conversation through the webhook's answer, or send at any time through the send route protected by a token.
 order: 3
 ---
 
 ## Reply to a message {#reply}
 
-The relay waits for the webhook's answer and sends it to the conversation the message came from. End the workflow
-with a **Respond to Webhook** node that answers in JSON:
+The relay waits for the webhook's answer and sends it to the conversation the message came from. The service that
+receives the webhook answers with a `2xx` code and a JSON body:
 
 ```json
 {"reply": "Got it, **thanks**!"}
@@ -22,18 +22,28 @@ sent and the message is not retried.
 
 ## Push a message {#push}
 
-A workflow can send a message at any time, for example on an alert or a schedule, with an **HTTP Request** node:
+An HTTP client can send a message at any time, for example on an alert or a schedule, with a request to the send
+route:
 
-1. Method `POST`, address `http://moonie-signal:8080/signal/send`.
-2. Authentication: "Generic Credential Type", then "Header Auth", with the name `Authorization` and the value
-   `Bearer` followed by a space and the token from `secrets/push_token`.
-3. JSON body:
+1. Method `POST`, address `http://moonie-signal:8080/signal/send`, from the `moonie-signal-hook` network (see
+   [Getting started](getting-started.md#network)).
+2. `Authorization` header: `Bearer` followed by a space and the token from `secrets/push_token`.
+3. `Content-Type: application/json` header, and a JSON body:
 
 ```json
 {
   "to": ["5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42", "group.QUFFQ0F3UUZCZ2NJQ1FvTERBME9EeEFSRWhNVUZSWVhHQmthR3h3ZEhoOD0="],
   "text": "Last night's backup is **done**."
 }
+```
+
+With curl, from a container on the `moonie-signal-hook` network, with the token in the `PUSH_TOKEN` variable:
+
+```sh
+curl -X POST http://moonie-signal:8080/signal/send \
+  -H "Authorization: Bearer $PUSH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"to": ["+15555550101"], "text": "Hello"}'
 ```
 
 `to` takes up to 16 recipients: ids, numbers or groups. Each one must be allowed (see
@@ -48,7 +58,7 @@ A workflow can send a message at any time, for example on an alert or a schedule
   (`to[1]`).
 - `400`, `413`, `415`: a body that is invalid, too large or not JSON. `detail` names the faulty field.
 
-So that a replayed workflow does not send the same message twice, add an `Idempotency-Key` header (letters, digits
+So that a replayed request does not send the same message twice, add an `Idempotency-Key` header (letters, digits
 and `._:-`, 128 characters at most). The same key with the same body gives back the first answer without sending
 again; the same key with another body gives `409`.
 

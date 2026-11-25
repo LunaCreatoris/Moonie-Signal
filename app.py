@@ -1,11 +1,12 @@
 # Copyright (C) 2026 LunaCreatoris
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Moonie Signal: a bridge between a Signal account (through signal-cli-rest-api) and an n8n webhook.
+"""Moonie Signal: a bridge between a Signal account (through signal-cli-rest-api) and an HTTP webhook.
 
 - A background thread holds the WebSocket `/v1/receive/<account>` of signal-cli-rest-api (json-rpc mode).
 - Each kept message from an allowed chat is POSTed to the webhook (payload version 1); the webhook's JSON answer
   (`reply`, `text_mode`, `attachments`) goes back to the same chat.
-- `POST /signal/send` lets n8n push messages to allowed people and groups (bearer token, optional Idempotency-Key).
+- `POST /signal/send` lets an HTTP client push messages to allowed people and groups (bearer token, optional
+  Idempotency-Key).
 
 Everything is in this one file on purpose. Logs never carry a number, a uuid, a name, a text or a token.
 """

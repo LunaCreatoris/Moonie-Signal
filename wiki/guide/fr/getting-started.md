@@ -1,13 +1,13 @@
 ---
 title: Démarrer
-description: Préparer le compte Signal, le réseau et le jeton, lancer le relais et le brancher sur un webhook n8n.
+description: Préparer le compte Signal, le réseau et le jeton, brancher le relais sur un webhook et le lancer.
 order: 1
 ---
 
 ## Ce qu'il faut {#requirements}
 
 - Un hôte Linux avec Docker et Docker Compose.
-- Une instance n8n dans Docker, sur le même hôte.
+- Un service qui reçoit le webhook : une adresse HTTP qui accepte un `POST` en JSON et répond en JSON.
 - Un numéro de téléphone pour le compte Signal du bot. Un numéro à part est conseillé : le relais répond à tout ce
   que ce compte reçoit des personnes autorisées.
 - Une copie du dépôt, pour `compose.yml` et `.env.example`.
@@ -17,17 +17,21 @@ Un seul relais par compte Signal : deux relais sur le même compte répondraient
 ## Le réseau {#network}
 
 L'API de signal-cli-rest-api n'a aucune authentification : qui la joint contrôle le compte. Le relais et
-signal-cli ont donc leur propre réseau, et n8n ne voit que le relais, par un réseau interne créé une fois :
+signal-cli ont donc leur propre réseau, que rien d'autre ne rejoint. Ce réseau sort vers Internet : le relais peut
+appeler un webhook à n'importe quelle adresse qu'il joint.
+
+Pour la route d'envoi, le relais n'est joignable que par un réseau interne, créé une fois :
 
 ```sh
 docker network create --internal moonie-signal-hook
 ```
 
-Branchez n8n sur ce réseau dans son propre fichier compose, sous le nom `n8n` :
+Branchez sur ce réseau, dans son propre fichier compose, le service qui reçoit le webhook et appelle la route
+d'envoi, ici sous le nom `receiver` :
 
 ```yaml
 services:
-  n8n:
+  receiver:
     networks:
       default: {}
       moonie-signal-hook: {}
@@ -37,8 +41,8 @@ networks:
     external: true
 ```
 
-Sur ce réseau, le relais joint n8n à `http://n8n:5678`, et n8n joint le relais à `http://moonie-signal:8080`. Aucun
-port n'est publié sur l'hôte.
+Sur ce réseau, ce service joint le relais à `http://moonie-signal:8080`, et le relais joint ce service par son nom,
+par exemple `http://receiver:8000`. Aucun port n'est publié sur l'hôte.
 
 ## Les réglages {#settings}
 
@@ -46,12 +50,12 @@ Copiez `.env.example` en `.env` (mode 600, jamais versionné) et remplissez au m
 
 ```sh
 MOONIE_SIGNAL_ACCOUNT=+15555550100
-MOONIE_SIGNAL_WEBHOOK_URL=http://n8n:5678/webhook/<your-webhook-path>
+MOONIE_SIGNAL_WEBHOOK_URL=http://receiver:8000/<your-webhook-path>
 MOONIE_SIGNAL_WHITELIST_DIRECT=+15555550101
 ```
 
 - `MOONIE_SIGNAL_ACCOUNT` est le numéro du bot, au format international : `+` puis les chiffres.
-- `MOONIE_SIGNAL_WEBHOOK_URL` est l'adresse de production du webhook n8n (voir plus bas).
+- `MOONIE_SIGNAL_WEBHOOK_URL` est l'adresse complète du webhook (voir plus bas).
 - `MOONIE_SIGNAL_IMAGE` est l'étiquette de l'image du relais, construite depuis votre copie du dépôt.
 
 Les listes blanches sont expliquées dans [Listes blanches et groupes](whitelists-and-groups.md).
@@ -67,8 +71,8 @@ python3 -c "import secrets; print(secrets.token_hex(32))" > secrets/push_token
 sudo chown 10001:10001 secrets/push_token && sudo chmod 0400 secrets/push_token
 ```
 
-Gardez ce jeton : n8n le donnera à chaque envoi. Sans jeton valide, la route d'envoi est coupée, la réception
-marche quand même.
+Gardez ce jeton : le client qui envoie le donne à chaque envoi. Sans jeton valide, la route d'envoi est coupée,
+la réception marche quand même.
 
 ## Le compte Signal {#signal-account}
 
@@ -100,15 +104,16 @@ numéro, sont dans la
 Gardez l'API publiée le temps de relever les identifiants de groupes (voir
 [Listes blanches et groupes](whitelists-and-groups.md#find-a-group-id)), puis supprimez `compose.override.yml`.
 
-## Le webhook n8n {#n8n-webhook}
+## Le webhook {#webhook}
 
-Dans n8n, créez un workflow qui commence par un nœud **Webhook** :
+Le relais envoie chaque message autorisé en `POST`, avec un corps JSON, à l'adresse de `MOONIE_SIGNAL_WEBHOOK_URL`.
+Le service qui reçoit ce webhook doit :
 
-1. Méthode HTTP `POST`, et un chemin à vous, celui que vous mettez dans `MOONIE_SIGNAL_WEBHOOK_URL`.
-2. Réponse : « Using 'Respond to Webhook' node » si le workflow répond dans la conversation, sinon une réponse
-   immédiate.
-3. Activez le workflow : le relais appelle l'adresse de production (`/webhook/`), pas celle de test
-   (`/webhook-test/`).
+1. accepter un `POST` en JSON sur cette adresse ;
+2. répondre en JSON : `{"reply": "…"}` pour répondre dans la conversation, `{}` ou un corps vide pour se taire
+   (voir [Répondre et envoyer](replying-and-sending.md#reply)) ;
+3. répondre par un code `2xx`. Un `429` ou un `503` fait réessayer le relais ; tout autre code perd le message. Les
+   redirections ne sont pas suivies.
 
 Chaque message arrive comme un objet JSON : `text` pour le texte, `chat.type` (`direct` ou `group`) et `chat.id`
 pour la conversation, `sender.id`, `sender.number` et `sender.name` pour l'auteur, `attachments` pour les pièces
@@ -130,6 +135,6 @@ docker compose logs -f moonie
 ```
 
 Le journal doit montrer `websocket connected`. Écrivez au bot depuis un numéro de la liste blanche : le message
-arrive dans les exécutions du workflow n8n.
+arrive sur le webhook.
 
-Ensuite : [Répondre et envoyer depuis n8n](sending-from-n8n.md).
+Ensuite : [Répondre et envoyer](replying-and-sending.md).

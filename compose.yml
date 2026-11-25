@@ -2,8 +2,9 @@
 # `docker compose up -d --build` builds the app's image from this checkout.
 #
 # signal-cli-rest-api's API has no authentication: whatever reaches it owns the Signal account. So the `backend`
-# network holds the app and signal-cli only; n8n joins the internal `hook` network, where it reaches the app's push
-# route (http://moonie-signal:8080/signal/send) and nothing of the backend. No port is published.
+# network holds the app and signal-cli only; the webhook receiver joins the internal `hook` network, where it
+# reaches the app's push route (http://moonie-signal:8080/signal/send) and nothing of the backend. No port is
+# published.
 name: moonie-signal
 
 services:
@@ -20,7 +21,7 @@ services:
     environment:
       MOONIE_SIGNAL_ACCOUNT: ${MOONIE_SIGNAL_ACCOUNT:?set the Signal account number in .env}
       MOONIE_SIGNAL_API_URL: http://signal:8080
-      MOONIE_SIGNAL_WEBHOOK_URL: ${MOONIE_SIGNAL_WEBHOOK_URL:?set the n8n webhook URL in .env}
+      MOONIE_SIGNAL_WEBHOOK_URL: ${MOONIE_SIGNAL_WEBHOOK_URL:?set the webhook URL in .env}
       MOONIE_SIGNAL_WHITELIST_DIRECT: ${MOONIE_SIGNAL_WHITELIST_DIRECT:-}
       MOONIE_SIGNAL_ALLOWED_GROUPS: ${MOONIE_SIGNAL_ALLOWED_GROUPS:-}
       MOONIE_SIGNAL_WHITELIST_GROUPS: ${MOONIE_SIGNAL_WHITELIST_GROUPS:-}
@@ -60,7 +61,8 @@ networks:
   # The app and signal-cli only. Not internal: signal-cli reaches Signal's servers through it
   backend:
     name: moonie-signal-backend
-  # The app and n8n: internal, created outside this stack so n8n's stack does not depend on this one:
+  # The app and the webhook receiver: internal, created outside this stack so the receiver's stack does not
+  # depend on this one:
   #   docker network create --internal moonie-signal-hook
   hook:
     external: true

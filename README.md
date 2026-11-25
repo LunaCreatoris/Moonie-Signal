@@ -1,12 +1,15 @@
 # Moonie Signal
 
-A small bridge between a Signal account and an n8n webhook, through
+Moonie Signal sits in front of signal-cli and translates it. Instead of its raw API, you get a simple route to send
+messages, and every message received reaches your webhook (n8n, for example) in a stable format.
+
+It talks to signal-cli through
 [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) in `json-rpc` mode. One Python file
 (`app.py`): Flask for the push route, `websocket-client` for receiving, `requests` with urllib3's retries for the
 outgoing calls, `markdown-it-py` for the Markdown text mode.
 
-**Requirements**: a host with Docker and Docker Compose, an n8n instance on that host, and a phone number for the
-bot's Signal account.
+**Requirements**: a host with Docker and Docker Compose, a service that receives the webhook (an HTTP endpoint that
+accepts a JSON `POST` and answers in JSON), and a phone number for the bot's Signal account.
 
 **Guide**: a step-by-step user guide, from the first start to troubleshooting, is in
 [English](wiki/guide/en/index.md) and in [French](wiki/guide/fr/index.md). This README is the technical reference.
@@ -44,7 +47,7 @@ Logs carry counts and outcome codes only: never a number, a uuid, a name, a text
 | Variable | Default | Meaning |
 |---|---|---|
 | `MOONIE_SIGNAL_ACCOUNT` | required | The registered number, `+` and digits |
-| `MOONIE_SIGNAL_WEBHOOK_URL` | required | The n8n webhook, such as `http://n8n:5678/webhook/<your-webhook-path>` |
+| `MOONIE_SIGNAL_WEBHOOK_URL` | required | The webhook, such as `http://receiver:8000/<your-webhook-path>` |
 | `MOONIE_SIGNAL_API_URL` | `http://signal:8080` | signal-cli-rest-api |
 | `MOONIE_SIGNAL_WHITELIST_DIRECT` | empty | Who may write in direct (uuids or numbers, comma-separated) |
 | `MOONIE_SIGNAL_ALLOWED_GROUPS` | empty | Groups served (`group:<id>`, raw base64 or REST `group.<id>`) |
@@ -54,7 +57,7 @@ Logs carry counts and outcome codes only: never a number, a uuid, a name, a text
 | `MOONIE_SIGNAL_WEBHOOK_SECONDS` | `120` | Time the webhook has to answer (5 to 600) |
 | `MOONIE_SIGNAL_TEXT_MODE` | `markdown` | Default mode of replies and pushes |
 | `MOONIE_SIGNAL_MAX_ATTACHMENT_BYTES` | `10485760` | Attachment bytes per message, both directions |
-| `MOONIE_HTTP_PORT` | `8080` | Port of the push route (`compose.yml` keeps 8080, the port n8n calls) |
+| `MOONIE_HTTP_PORT` | `8080` | Port of the push route (`compose.yml` keeps 8080, the port push clients call) |
 | `MOONIE_HTTP_MAX_BODY_BYTES` | `67108864` | Largest push body |
 
 `compose.yml` passes every setting above from `.env`; an empty value means the default. It sets the API URL itself
@@ -93,7 +96,7 @@ in your list, never the word. `just test` runs the same check skipped, plus a ge
 
 ## Deploying
 
-1. `docker network create --internal moonie-signal-hook` once, and attach n8n to it.
+1. `docker network create --internal moonie-signal-hook` once, and attach the webhook receiver to it.
 2. Copy `.env.example` to `.env` and fill it in; write `secrets/push_token` as `.env.example` says.
 3. Put the signal-cli data folder in `./signal-cli` (owned 1000:1000), or register the account with signal-cli.
 4. `docker compose up -d --build` (or `just run`): it builds the app's image from this checkout, tagged

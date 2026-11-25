@@ -14,17 +14,18 @@ Each handled message gives one line with its conversation type, the number of at
 duration, for example `message 12: direct, 0 attachments, replied, 840 ms`. The outcome is `replied`, `silence`
 (empty answer) or `lost:` followed by the reason. The log never holds a number, an id, a name, a text or a token.
 
-## Nothing reaches n8n {#nothing-reaches-n8n}
+## Nothing reaches the webhook {#nothing-reaches-the-webhook}
 
 - **`refused 1 message from a chat not allowed`**: the person or the group is not in the lists. See
   [Whitelists and groups](whitelists-and-groups.md).
 - **`lost:members_not_allowed`**: a member or an invite of the group is not in `MOONIE_SIGNAL_WHITELIST_GROUPS`.
   **`lost:members_unknown`**: the member list could not be read.
-- **`lost:unreachable`**: the relay cannot reach n8n. Check that n8n is on the `moonie-signal-hook` network under
-  the name `n8n`, and the address in `MOONIE_SIGNAL_WEBHOOK_URL`.
-- **`lost:http_404`**: the workflow is not active, or the address is the test one (`/webhook-test/`) instead of the
-  production one (`/webhook/`).
-- **`lost:timeout`**: the workflow took more than 120 seconds to answer. Answer sooner, or raise the timeout with
+- **`lost:unreachable`**: the relay cannot reach the webhook. Check the address in `MOONIE_SIGNAL_WEBHOOK_URL`, and
+  that the service that receives it is on a network the relay reaches, for example `moonie-signal-hook`.
+- **`lost:http_` followed by a code**: the webhook answered with this code instead of a `2xx`. A `404` often comes
+  from a wrong path in `MOONIE_SIGNAL_WEBHOOK_URL`, a `401` or a `403` from a missing or wrong webhook token, a `3xx`
+  from a redirect, which the relay does not follow.
+- **`lost:timeout`**: the webhook took more than 120 seconds to answer. Answer sooner, or raise the timeout with
   `MOONIE_SIGNAL_WEBHOOK_SECONDS` (600 seconds at most).
 - **No line at all**: the relay receives nothing from signal-cli. See the next section.
 

@@ -1,6 +1,6 @@
 ---
 title: Moonie Signal
-description: Relie un compte Signal à un workflow n8n, pour lire les messages des personnes et des groupes autorisés, leur répondre et leur écrire.
+description: Moonie Signal se place devant signal-cli et le traduit.
 status: Version 4.0.0
 github: https://github.com/LunaCreatoris/Moonie-Signal
 order: 5
@@ -8,14 +8,17 @@ order: 5
 
 ## Ce que fait Moonie Signal {#what-signal-does}
 
-Moonie Signal est un petit relais entre un compte Signal et un webhook n8n. Le compte tourne dans
-[signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) ; le relais écoute ses messages et les
-transmet à n8n, qui décide quoi en faire.
+Moonie Signal se place devant signal-cli et le traduit. Au lieu de son API brute, vous avez une route simple pour
+envoyer des messages, et chaque message reçu arrive à votre webhook, n8n par exemple, dans un format stable.
 
-- **Recevoir** : chaque message autorisé part vers le webhook n8n en JSON, texte, mentions, citation et pièces jointes
+Le compte Signal tourne dans
+[signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) ; le relais écoute ses messages et les
+transmet au webhook, et le service qui reçoit le webhook décide quoi en faire.
+
+- **Recevoir** : chaque message autorisé part vers le webhook en JSON, texte, mentions, citation et pièces jointes
   compris.
 - **Répondre** : la réponse JSON du webhook repart dans la même conversation. Une réponse vide n'envoie rien.
-- **Envoyer de soi-même** : un workflow n8n peut envoyer un message à tout moment par la route `/signal/send`,
+- **Envoyer de soi-même** : un client HTTP peut envoyer un message à tout moment par la route `/signal/send`,
   protégée par un jeton.
 
 ## Qui peut parler au bot {#who-can-talk}
@@ -29,9 +32,9 @@ jeton.
 
 ## Les pages du guide {#pages}
 
-- [Démarrer](getting-started.md) : le compte Signal, le réseau, le jeton, le lancement et le webhook n8n.
+- [Démarrer](getting-started.md) : le compte Signal, le réseau, le jeton, le webhook et le lancement.
 - [Listes blanches et groupes](whitelists-and-groups.md) : autoriser des personnes et des groupes.
-- [Répondre et envoyer depuis n8n](sending-from-n8n.md) : la réponse du webhook et la route d'envoi.
+- [Répondre et envoyer](replying-and-sending.md) : la réponse du webhook et la route d'envoi.
 - [Dépannage](troubleshooting.md) : lire les journaux et régler les problèmes courants.
 
 ## La référence technique {#reference}

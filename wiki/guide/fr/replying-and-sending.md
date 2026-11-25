@@ -1,13 +1,13 @@
 ---
-title: Répondre et envoyer depuis n8n
+title: Répondre et envoyer
 description: Répondre dans la conversation par la réponse du webhook, ou écrire à tout moment par la route d'envoi protégée par un jeton.
 order: 3
 ---
 
 ## Répondre à un message {#reply}
 
-Le relais attend la réponse du webhook et l'envoie dans la conversation d'où vient le message. Terminez le workflow
-par un nœud **Respond to Webhook** qui répond en JSON :
+Le relais attend la réponse du webhook et l'envoie dans la conversation d'où vient le message. Le service qui reçoit
+le webhook répond par un code `2xx` et un corps JSON :
 
 ```json
 {"reply": "Bien reçu, **merci** !"}
@@ -22,18 +22,28 @@ n'est envoyé et le message n'est pas renvoyé.
 
 ## Envoyer un message {#push}
 
-Un workflow peut écrire à tout moment, par exemple sur une alerte ou un horaire, avec un nœud **HTTP Request** :
+Un client HTTP peut écrire à tout moment, par exemple sur une alerte ou un horaire, par une requête vers la route
+d'envoi :
 
-1. Méthode `POST`, adresse `http://moonie-signal:8080/signal/send`.
-2. Authentification : « Generic Credential Type », puis « Header Auth », avec le nom `Authorization` et la valeur
-   `Bearer` suivie d'une espace et du jeton de `secrets/push_token`.
-3. Corps en JSON :
+1. Méthode `POST`, adresse `http://moonie-signal:8080/signal/send`, depuis le réseau `moonie-signal-hook` (voir
+   [Démarrer](getting-started.md#network)).
+2. En-tête `Authorization` : `Bearer` suivi d'une espace et du jeton de `secrets/push_token`.
+3. En-tête `Content-Type: application/json`, et un corps en JSON :
 
 ```json
 {
   "to": ["5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42", "group.QUFFQ0F3UUZCZ2NJQ1FvTERBME9EeEFSRWhNVUZSWVhHQmthR3h3ZEhoOD0="],
   "text": "La sauvegarde de cette nuit est **terminée**."
 }
+```
+
+Avec curl, depuis un conteneur du réseau `moonie-signal-hook`, le jeton dans la variable `PUSH_TOKEN` :
+
+```sh
+curl -X POST http://moonie-signal:8080/signal/send \
+  -H "Authorization: Bearer $PUSH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"to": ["+15555550101"], "text": "Bonjour"}'
 ```
 
 `to` prend jusqu'à 16 destinataires : identifiants, numéros ou groupes. Chacun doit être autorisé (voir
@@ -48,7 +58,7 @@ Un workflow peut écrire à tout moment, par exemple sur une alerte ou un horair
   position (`to[1]`).
 - `400`, `413`, `415` : corps invalide, trop gros ou qui n'est pas du JSON. `detail` nomme le champ fautif.
 
-Pour qu'un workflow rejoué n'envoie pas deux fois le même message, ajoutez un en-tête `Idempotency-Key` (lettres,
+Pour qu'une requête rejouée n'envoie pas deux fois le même message, ajoutez un en-tête `Idempotency-Key` (lettres,
 chiffres et `._:-`, 128 caractères au plus). La même clé avec le même corps rend la première réponse sans renvoyer ;
 la même clé avec un autre corps donne `409`.
 

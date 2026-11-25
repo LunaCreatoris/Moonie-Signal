@@ -14,8 +14,8 @@ Everything is set in `.env`, with comma-separated lists. An empty list allows no
 | `MOONIE_SIGNAL_ALLOWED_GROUPS` | The groups the bot serves |
 | `MOONIE_SIGNAL_WHITELIST_GROUPS` | The people who may be in a served group |
 
-The same lists apply to sending: n8n can only write to a person in `MOONIE_SIGNAL_WHITELIST_DIRECT` or to a group
-in `MOONIE_SIGNAL_ALLOWED_GROUPS`.
+The same lists apply to sending: the send route can only write to a person in `MOONIE_SIGNAL_WHITELIST_DIRECT` or
+to a group in `MOONIE_SIGNAL_ALLOWED_GROUPS`.
 
 After a change, restart the relay with `docker compose up -d`. An invalid value stops the start with a line naming
 the variable and the item's position, never its value.
@@ -29,7 +29,8 @@ for a person who hides their number.
 To note a person's id:
 
 1. First put their number in `MOONIE_SIGNAL_WHITELIST_DIRECT` and restart.
-2. Ask them to write to the bot, then open the execution in n8n: the id is in `sender.id`.
+2. Ask them to write to the bot, then read the message the webhook received: the id is in
+   `sender.id`.
 3. Replace the number with that id.
 
 ```sh
@@ -69,4 +70,4 @@ MOONIE_SIGNAL_WHITELIST_GROUPS=5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42,+15555550102
 ## What a refused person sees {#refusals}
 
 Nothing. The relay does not answer and sends no error: it only writes a line in its log, with no detail about the
-person. See [Troubleshooting](troubleshooting.md#nothing-reaches-n8n).
+person. See [Troubleshooting](troubleshooting.md#nothing-reaches-the-webhook).

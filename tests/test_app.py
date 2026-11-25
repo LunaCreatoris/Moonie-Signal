@@ -1,5 +1,5 @@
-"""The relay against a fake signal-cli-rest-api and a fake n8n, both in-process (the `responses` library mocks every
-HTTP call; WebSocket frames are fed straight to `Relay.on_frame`)."""
+"""The relay against a fake signal-cli-rest-api and a fake webhook receiver, both in-process (the `responses` library
+mocks every HTTP call; WebSocket frames are fed straight to `Relay.on_frame`)."""
 
 import base64
 import json
@@ -11,7 +11,7 @@ from responses import matchers
 import app
 
 API = "http://signal:8080"
-HOOK = "http://n8n:5678/webhook/test-hook"
+HOOK = "http://receiver:8000/webhook/test-hook"
 ACCOUNT = "+15555550100"
 ALICE = "5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42"
 ALICE_NUMBER = "+15555550101"
@@ -78,7 +78,7 @@ def members(*people):
 
 
 @responses.activate
-def test_ping_goes_to_n8n_and_its_pong_comes_back(relay):
+def test_ping_goes_to_the_webhook_and_its_pong_comes_back(relay):
     responses.post(HOOK, json={"reply": "pong"})
     responses.post(f"{API}/v2/send", json={"timestamp": "1731500000999"}, status=201)
     run(relay, frame("/ping"))

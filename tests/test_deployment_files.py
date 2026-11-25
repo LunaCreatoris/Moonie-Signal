@@ -10,7 +10,7 @@ ENV_EXAMPLE = (ROOT / ".env.example").read_text(encoding="utf-8")
 DOCKERFILE = (ROOT / "Dockerfile").read_text(encoding="utf-8")
 JUSTFILE = (ROOT / "justfile").read_text(encoding="utf-8")
 
-# Fixed by compose.yml itself: the API is the `signal` service, the port is the one n8n is told to call
+# Fixed by compose.yml itself: the API is the `signal` service, the port is the one push clients call
 SET_BY_COMPOSE = {"MOONIE_SIGNAL_API_URL", "MOONIE_HTTP_PORT"}
 
 

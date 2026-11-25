@@ -14,8 +14,8 @@ Tout se règle dans `.env`, avec des listes séparées par des virgules. Une lis
 | `MOONIE_SIGNAL_ALLOWED_GROUPS` | Les groupes que le bot sert |
 | `MOONIE_SIGNAL_WHITELIST_GROUPS` | Les personnes qui peuvent être dans un groupe servi |
 
-Les mêmes listes valent pour l'envoi : n8n ne peut écrire qu'à une personne de `MOONIE_SIGNAL_WHITELIST_DIRECT` ou
-à un groupe de `MOONIE_SIGNAL_ALLOWED_GROUPS`.
+Les mêmes listes valent pour l'envoi : la route d'envoi ne peut écrire qu'à une personne de
+`MOONIE_SIGNAL_WHITELIST_DIRECT` ou à un groupe de `MOONIE_SIGNAL_ALLOWED_GROUPS`.
 
 Après un changement, relancez le relais avec `docker compose up -d`. Une valeur invalide arrête le démarrage avec
 une ligne qui nomme la variable et la position de l'élément, jamais sa valeur.
@@ -29,7 +29,8 @@ marche aussi pour une personne qui cache son numéro.
 Pour relever l'identifiant d'une personne :
 
 1. Mettez d'abord son numéro dans `MOONIE_SIGNAL_WHITELIST_DIRECT` et relancez.
-2. Demandez-lui d'écrire au bot, puis ouvrez l'exécution dans n8n : l'identifiant est dans `sender.id`.
+2. Demandez-lui d'écrire au bot, puis lisez le message reçu par le webhook : l'identifiant est dans
+   `sender.id`.
 3. Remplacez le numéro par cet identifiant.
 
 ```sh
@@ -69,4 +70,4 @@ MOONIE_SIGNAL_WHITELIST_GROUPS=5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42,+15555550102
 ## Ce que voit une personne refusée {#refusals}
 
 Rien. Le relais ne répond pas et n'envoie pas d'erreur : il écrit seulement une ligne dans son journal, sans aucun
-détail sur la personne. Voir [Dépannage](troubleshooting.md#nothing-reaches-n8n).
+détail sur la personne. Voir [Dépannage](troubleshooting.md#nothing-reaches-the-webhook).
