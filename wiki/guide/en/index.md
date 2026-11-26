@@ -30,7 +30,9 @@ The logs only give counts and codes: never a number, an id, a name, a text or a 
 
 ## The guide's pages {#pages}
 
-- [Getting started](getting-started.md): the Signal account, the network, the token, the webhook and the start.
+- [Getting started](getting-started.md): the two ways to deploy, the Signal account, the network, the token, the
+  webhook and the start.
+- [Deploy with Portainer](portainer.md): the same relay as a Portainer stack built from the Git repository.
 - [Whitelists and groups](whitelists-and-groups.md): allow people and groups.
 - [Replying and sending](replying-and-sending.md): the webhook's answer and the send route.
 - [Troubleshooting](troubleshooting.md): read the logs and fix the common problems.

@@ -1,7 +1,7 @@
 ---
 title: Listes blanches et groupes
 description: Choisir qui peut écrire au bot en direct, quels groupes il sert et qui peut être membre de ces groupes.
-order: 2
+order: 3
 ---
 
 ## Trois listes {#three-lists}
@@ -40,7 +40,8 @@ MOONIE_SIGNAL_WHITELIST_DIRECT=5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42,+15555550102
 ## Trouver l'identifiant d'un groupe {#find-a-group-id}
 
 Ajoutez le compte du bot au groupe depuis un téléphone. Puis, avec l'API publiée le temps du lien (voir
-[Démarrer](getting-started.md#signal-account)), listez les groupes du compte :
+[Démarrer](getting-started.md#signal-account), ou la pile temporaire de
+[Déployer avec Portainer](portainer.md#link-account)), listez les groupes du compte :
 
 ```sh
 curl http://127.0.0.1:8080/v1/groups/+15555550100

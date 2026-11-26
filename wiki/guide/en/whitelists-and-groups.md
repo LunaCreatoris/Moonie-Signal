@@ -1,7 +1,7 @@
 ---
 title: Whitelists and groups
 description: Choose who may write to the bot directly, which groups it serves and who may be a member of those groups.
-order: 2
+order: 3
 ---
 
 ## Three lists {#three-lists}
@@ -40,7 +40,8 @@ MOONIE_SIGNAL_WHITELIST_DIRECT=5d1f0b0e-3a3c-4c1f-9a51-6f0e2b1c7d42,+15555550102
 ## Find a group's id {#find-a-group-id}
 
 Add the bot's account to the group from a phone. Then, with the API published for the time of the link (see
-[Getting started](getting-started.md#signal-account)), list the account's groups:
+[Getting started](getting-started.md#signal-account), or the temporary stack of
+[Deploy with Portainer](portainer.md#link-account)), list the account's groups:
 
 ```sh
 curl http://127.0.0.1:8080/v1/groups/+15555550100

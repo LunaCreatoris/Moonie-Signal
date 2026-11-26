@@ -32,7 +32,9 @@ jeton.
 
 ## Les pages du guide {#pages}
 
-- [Démarrer](getting-started.md) : le compte Signal, le réseau, le jeton, le webhook et le lancement.
+- [Démarrer](getting-started.md) : les deux façons de déployer, le compte Signal, le réseau, le jeton, le webhook
+  et le lancement.
+- [Déployer avec Portainer](portainer.md) : le même relais dans une pile Portainer construite depuis le dépôt Git.
 - [Listes blanches et groupes](whitelists-and-groups.md) : autoriser des personnes et des groupes.
 - [Répondre et envoyer](replying-and-sending.md) : la réponse du webhook et la route d'envoi.
 - [Dépannage](troubleshooting.md) : lire les journaux et régler les problèmes courants.

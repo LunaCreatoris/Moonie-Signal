@@ -1,7 +1,7 @@
 ---
 title: Cas testés
 description: Les installations réellement essayées avec Moonie Signal, avec leurs étapes concrètes.
-order: 5
+order: 6
 ---
 
 ## Ce que contient cette page {#about}

@@ -5,6 +5,7 @@ __pycache__/
 .ruff_cache/
 .env
 secrets/
+signal-cli/
 .DS_Store
 ._*
 .smbdelete*

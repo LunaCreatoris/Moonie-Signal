@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Prepare the Signal account, the network and the token, connect the relay to a webhook and start it.
+description: Choose a deployment path, prepare the Signal account, the network and the token, connect the relay to a webhook and start it.
 order: 1
 ---
 
@@ -10,9 +10,33 @@ order: 1
 - A service that receives the webhook: an HTTP address that accepts a JSON `POST` and answers in JSON.
 - A phone number for the bot's Signal account. A separate number is advised: the relay answers everything this
   account receives from allowed people.
-- A copy of the repository, for `compose.yml` and `.env.example`.
+- A copy of the repository: the relay's image is built from it, since no image is published on any registry.
 
 One relay per Signal account: two relays on the same account would each answer every message.
+
+## Two ways to deploy {#deployment-paths}
+
+Both paths run the same `compose.yml` and build the same image from the repository:
+
+1. **Docker Compose or Portainer, without just.** Plain `docker compose` commands, on any host with Docker. In
+   Portainer, the relay is a stack deployed from the Git repository: see
+   [Deploy with Portainer](portainer.md), which replaces the steps below.
+2. **With just.** The same steps, then the repository's recipes start, follow and stop the stack.
+
+Apart from that, `just` is the contributors' tool: `just ci` (lint, then every test) is the check a change must
+pass. Running the relay never needs it.
+
+## Get the repository {#get-the-repository}
+
+Clone it, or download it as an archive and unpack it:
+
+```sh
+git clone https://github.com/LunaCreatoris/Moonie-Signal.git moonie-signal
+cd moonie-signal
+```
+
+Every command below runs from this folder, next to `compose.yml`. To update later, `git pull` (or a fresh
+archive), then start again: the image is rebuilt from the new code.
 
 ## The network {#network}
 
@@ -57,6 +81,8 @@ MOONIE_SIGNAL_WHITELIST_DIRECT=+15555550101
 - `MOONIE_SIGNAL_ACCOUNT` is the bot's number, in international format: `+` then the digits.
 - `MOONIE_SIGNAL_WEBHOOK_URL` is the webhook's full address (see below).
 - `MOONIE_SIGNAL_IMAGE` is the tag of the relay's image, built from your copy of the repository.
+- `MOONIE_SIGNAL_DATA_DIR` and `MOONIE_SIGNAL_SECRETS_DIR` move the account folder and the token folder elsewhere on
+  the host. Left empty, they are `./signal-cli` and `./secrets`, next to `compose.yml`.
 
 The whitelists are explained in [Whitelists and groups](whitelists-and-groups.md).
 
@@ -70,6 +96,9 @@ install -d -m 0700 secrets
 python3 -c "import secrets; print(secrets.token_hex(32))" > secrets/push_token
 sudo chown 10001:10001 secrets/push_token && sudo chmod 0400 secrets/push_token
 ```
+
+Without Python, `openssl rand -hex 32 > secrets/push_token` writes the same kind of token. These commands are for
+the Linux host that runs the stack; to read the token back later, `sudo cat secrets/push_token`.
 
 Keep this token: the client that pushes sends it with every push. Without a valid token the send route is off;
 receiving still works.
@@ -127,13 +156,28 @@ A setup tested with n8n, node by node, is described in [Tested setups](tested-se
 
 ## Start {#start}
 
-First stop any other relay of the same account, then build the relay's image from your copy of the repository
-and start the stack:
+First stop any other relay of the same account. Then start the stack with one of the two paths: each start builds
+the relay's image from your copy of the repository.
+
+### With Docker Compose {#start-compose}
 
 ```sh
-docker compose up -d --build
+docker compose up -d
 docker compose logs -f moonie
 ```
+
+`docker compose down` stops the stack; the account folder and the token stay.
+
+### With just {#start-just}
+
+```sh
+just run
+just logs
+```
+
+`just stop` stops the stack. `just` with no argument lists every recipe.
+
+### Check {#check}
 
 The log should show `websocket connected`. Write to the bot from a whitelisted number: the message reaches the
 webhook.

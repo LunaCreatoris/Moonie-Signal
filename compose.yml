@@ -1,5 +1,7 @@
 # Moonie Signal beside signal-cli-rest-api. Values come from .env (see .env.example), the push token from a file.
-# `docker compose up -d --build` builds the app's image from this checkout.
+# `docker compose up -d` builds the app's image from this checkout: no image is published, and nothing here needs
+# just. Portainer CE deploys it as a Git-repository stack, with absolute host paths in MOONIE_SIGNAL_DATA_DIR and
+# MOONIE_SIGNAL_SECRETS_DIR, since relative bind mounts there are a Business Edition feature.
 #
 # signal-cli-rest-api's API has no authentication: whatever reaches it owns the Signal account. So the `backend`
 # network holds the app and signal-cli only; the webhook receiver joins the internal `hook` network, where it
@@ -11,6 +13,8 @@ services:
   moonie:
     image: ${MOONIE_SIGNAL_IMAGE:-moonie-signal:local}
     build: .
+    # Built on every `up`, so a redeploy (a Portainer Git update included) runs the checkout's code, never a stale tag
+    pull_policy: build
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
@@ -52,9 +56,9 @@ services:
       # Messages wait on Signal's servers while the app restarts, instead of being drained and lost
       JSON_RPC_RECEIVE_MODE: manual
       TZ: ${TZ:-UTC}
-    # The account's data and keys, owned 1000:1000; never versioned
+    # The account's data and keys, owned 1000:1000; never versioned. An absolute host path under Portainer CE
     volumes:
-      - ./signal-cli:/home/.local/share/signal-cli
+      - ${MOONIE_SIGNAL_DATA_DIR:-./signal-cli}:/home/.local/share/signal-cli
     networks: [backend]
 
 networks:
@@ -69,6 +73,7 @@ networks:
     name: moonie-signal-hook
 
 secrets:
-  # A random token of 32 characters or more, readable by uid 10001 (the app's user)
+  # A random token of 32 characters or more, readable by uid 10001 (the app's user). An absolute host folder
+  # under Portainer CE
   push_token:
-    file: ./secrets/push_token
+    file: ${MOONIE_SIGNAL_SECRETS_DIR:-./secrets}/push_token

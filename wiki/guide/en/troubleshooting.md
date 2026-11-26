@@ -1,7 +1,7 @@
 ---
 title: Troubleshooting
 description: Read the relay's logs and fix the most common problems.
-order: 4
+order: 5
 ---
 
 ## Read the logs {#logs}
@@ -37,8 +37,9 @@ The log should show `websocket connected`. If it shows `websocket closed` over a
 docker compose logs -f signal
 ```
 
-Check that `./signal-cli` holds the account's data, that it belongs to uid 1000, and that `MOONIE_SIGNAL_ACCOUNT`
-is the same number. `docker compose ps` shows the relay `unhealthy` once the connection has been down for more than
+Check that the account folder (`./signal-cli`, or the one in `MOONIE_SIGNAL_DATA_DIR`) holds the account's data,
+that it belongs to uid 1000, and that `MOONIE_SIGNAL_ACCOUNT` is the same number. In Portainer, the logs are in
+**Containers**. `docker compose ps` shows the relay `unhealthy` once the connection has been down for more than
 two minutes.
 
 ## Every message gets two replies {#double-replies}

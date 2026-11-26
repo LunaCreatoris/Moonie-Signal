@@ -61,8 +61,13 @@ Logs carry counts and outcome codes only: never a number, a uuid, a name, a text
 | `MOONIE_HTTP_MAX_BODY_BYTES` | `67108864` | Largest push body |
 
 `compose.yml` passes every setting above from `.env`; an empty value means the default. It sets the API URL itself
-and does not pass `MOONIE_HTTP_PORT`. To send a bearer token to the webhook, write it to `secrets/webhook_token`
-(owned and readable by uid 10001 only, like the push token), add it in a `compose.override.yml`:
+and does not pass `MOONIE_HTTP_PORT`. Three more variables shape the stack itself, not the app:
+`MOONIE_SIGNAL_IMAGE` (the tag compose builds, `moonie-signal:local` by default), `MOONIE_SIGNAL_DATA_DIR` (the
+signal-cli account folder, `./signal-cli` by default) and `MOONIE_SIGNAL_SECRETS_DIR` (the folder holding
+`push_token`, `./secrets` by default).
+
+To send a bearer token to the webhook, write it to `webhook_token` in the secrets folder (owned and readable by
+uid 10001 only, like the push token), add it in a `compose.override.yml`:
 
 ```yaml
 services:
@@ -70,7 +75,7 @@ services:
     secrets: [push_token, webhook_token]
 secrets:
   webhook_token:
-    file: ./secrets/webhook_token
+    file: ${MOONIE_SIGNAL_SECRETS_DIR:-./secrets}/webhook_token
 ```
 
 and set `MOONIE_SIGNAL_WEBHOOK_TOKEN_FILE=/run/secrets/webhook_token` in `.env`.
@@ -80,11 +85,13 @@ variable and the item's position, never its value.
 
 ## Working on it
 
-`just` lists the recipes; each one runs in the pinned Python image, so only Docker and `just` are needed.
+`just` is the contributors' tool: running the relay never needs it (see [Deploying](#deploying)). `just` lists the
+recipes; the checks run in the pinned Python image, so only Docker and `just` are needed.
 
 - `just test`, `just lint`, `just format`, `just ci` (lint then tests)
 - `just ci` is the only CI: there is no hosted pipeline, and a change merges only on a green local `just ci`
-- `just build` builds `moonie-signal:local`; `just run` builds and starts `compose.yml`
+- `just build` builds `moonie-signal:local`; `just run`, `just logs` and `just stop` start, follow and stop
+  `compose.yml`
 - `just lock` re-pins `requirements*.txt` from `requirements*.in` (needs `uv`)
 
 Before publishing a fork or a change, `just privacy-check` scans every repository file for the words that would
@@ -96,11 +103,23 @@ in your list, never the word. `just test` runs the same check skipped, plus a ge
 
 ## Deploying
 
+No prebuilt image is published on any registry: every deployment builds the app's image from the repository
+(`build: .`, `pull_policy: build`), tagged `MOONIE_SIGNAL_IMAGE`. There are two ways, both running the same
+`compose.yml`.
+
+**Docker Compose or Portainer, without just.** Clone or download the repository, then:
+
 1. `docker network create --internal moonie-signal-hook` once, and attach the webhook receiver to it.
 2. Copy `.env.example` to `.env` and fill it in; write `secrets/push_token` as `.env.example` says.
-3. Put the signal-cli data folder in `./signal-cli` (owned 1000:1000), or register the account with signal-cli.
-4. `docker compose up -d --build` (or `just run`): it builds the app's image from this checkout, tagged
-   `MOONIE_SIGNAL_IMAGE` (`moonie-signal:local` by default), and starts the stack. No prebuilt image is published.
+3. Put the signal-cli data folder in `./signal-cli` (owned 1000:1000), or link the account with signal-cli.
+4. `docker compose up -d`: it builds the image and starts the stack. `docker compose logs -f moonie` follows it.
+
+In Portainer CE, deploy a **Repository** (Git) stack with `compose.yml` as its Compose path, the settings as the
+stack's environment variables, and absolute host paths in `MOONIE_SIGNAL_DATA_DIR` and `MOONIE_SIGNAL_SECRETS_DIR`:
+a CE Git stack resolves no relative bind mount, and a Web editor stack has no checkout to build from. The steps are
+in the guide's [Deploy with Portainer](wiki/guide/en/portainer.md) page.
+
+**With just.** The same steps 1 to 3, then `just run` (and `just logs`, `just stop`).
 
 Stop any other relay of the same account first: both would answer every message. The waitress server runs in the
 same process as the receive and deliver threads, so the app is one process, one container.

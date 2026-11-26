@@ -1,7 +1,7 @@
 ---
 title: Replying and sending
 description: Reply in the conversation through the webhook's answer, or send at any time through the send route protected by a token.
-order: 3
+order: 4
 ---
 
 ## Reply to a message {#reply}

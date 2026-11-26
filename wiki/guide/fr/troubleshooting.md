@@ -1,7 +1,7 @@
 ---
 title: Dépannage
 description: Lire les journaux du relais et régler les problèmes les plus courants.
-order: 4
+order: 5
 ---
 
 ## Lire les journaux {#logs}
@@ -39,8 +39,9 @@ signal-cli :
 docker compose logs -f signal
 ```
 
-Vérifiez que `./signal-cli` contient bien les données du compte, qu'il appartient à l'uid 1000, et que
-`MOONIE_SIGNAL_ACCOUNT` est le même numéro. `docker compose ps` montre le relais `unhealthy` quand la connexion est
+Vérifiez que le dossier du compte (`./signal-cli`, ou celui de `MOONIE_SIGNAL_DATA_DIR`) contient bien les
+données du compte, qu'il appartient à l'uid 1000, et que `MOONIE_SIGNAL_ACCOUNT` est le même numéro. Dans
+Portainer, les journaux sont dans **Containers**. `docker compose ps` montre le relais `unhealthy` quand la connexion est
 coupée depuis plus de deux minutes.
 
 ## Chaque message reçoit deux réponses {#double-replies}

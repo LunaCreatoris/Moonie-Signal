@@ -1,7 +1,7 @@
 ---
 title: Répondre et envoyer
 description: Répondre dans la conversation par la réponse du webhook, ou écrire à tout moment par la route d'envoi protégée par un jeton.
-order: 3
+order: 4
 ---
 
 ## Répondre à un message {#reply}

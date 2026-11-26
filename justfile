@@ -31,9 +31,17 @@ ci: lint test
 build:
     docker build -t {{image}} .
 
-# Run the stack from compose.yml with .env (builds the image first)
-run: build
+# Run the stack from compose.yml with .env (compose builds the image from this checkout)
+run:
     docker compose up -d
+
+# Follow the relay's log
+logs:
+    docker compose logs -f moonie
+
+# Stop the stack
+stop:
+    docker compose down
 
 # Re-pin requirements*.txt to the latest versions (needs uv on the host)
 lock:

@@ -1,7 +1,7 @@
 ---
 title: Tested setups
 description: The setups actually tried with Moonie Signal, with their concrete steps.
-order: 5
+order: 6
 ---
 
 ## What this page holds {#about}
